@@ -1,5 +1,6 @@
 package org.example.springsecurityoauthclientsession.Configuration;
 
+import org.example.springsecurityoauthclientsession.OAuth2.CustomClientRegistrationRepository;
 import org.example.springsecurityoauthclientsession.Service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,19 +14,21 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomClientRegistrationRepository clientRegistrationRepository;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomClientRegistrationRepository clientRegistrationRepository) {
         this.customOAuth2UserService = customOAuth2UserService;
+        this.clientRegistrationRepository = clientRegistrationRepository;
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CustomClientRegistrationRepository customClientRegistrationRepository) throws Exception {
         http.
                 csrf(csrf->csrf.disable())
                 .formLogin(login->login.disable())
                 .httpBasic(basic->basic.disable())
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
+                        .clientRegistrationRepository(customClientRegistrationRepository.clientRegistrationRepository())
                         .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                                 .userService(customOAuth2UserService)))
                 .authorizeHttpRequests(auth -> auth
